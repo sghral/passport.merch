@@ -1,0 +1,6 @@
+{
+  "name": "PASSPORT // Эксклюзивный Мерч",
+  "description": "Премиальный импортный мерч и стритвир со всего мира. Удобное разделение товаров по странам импорта (Япония, США, Италия, Франция, Южная Корея) с фильтрацией по брендам и категориям.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
