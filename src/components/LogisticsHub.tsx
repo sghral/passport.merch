@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { PlaneTakeoff, Clock, Compass, Search, CheckCircle2, ShieldAlert, ArrowRight, Globe, Package, Layers, Truck } from 'lucide-react';
 import { COUNTRIES } from '../data';
+import { useLanguage } from './LanguageContext';
 
 interface LogisticsHubProps {
   initialSearchCode?: string;
@@ -9,6 +10,7 @@ interface LogisticsHubProps {
 }
 
 export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCode }: LogisticsHubProps) {
+  const { language, t, tCountry, tCity, tCargoStatus, tDelivery } = useLanguage();
   const [searchCode, setSearchCode] = useState(initialSearchCode);
   const [searchResult, setSearchResult] = useState<any>(null);
   const [searching, setSearching] = useState(false);
@@ -57,19 +59,41 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
       const seed = numPattern ? parseInt(numPattern[0]) : 4519;
 
       const steps = [
-        { title: 'Заявка одобрена таможней', desc: 'Декларант прошел электронный учет Шереметьево-Карго', done: true },
-        { title: 'Рейс забронирован', desc: 'Консолидированный рейс грузового борта Boeing 747-800', done: seed % 2 !== 0 },
-        { title: 'Экспортный контроль пройден', desc: 'Оригинальный упаковочный лист согласован в стране отправления', done: seed % 3 !== 0 },
-        { title: 'Транспортировка в РФ', desc: 'Рейс в транзите или готовится к погрузке', done: seed % 4 !== 0 },
-        { title: 'Сортировка Moscow Hub', desc: 'Проверка штрих-кодов и подготовка к выдаче', done: false },
+        { 
+          title: language === 'EN' ? 'Declaration Cleared by Customs' : 'Заявка одобрена таможней', 
+          desc: language === 'EN' ? 'Recipient passed automatic e-clearing validation metrics' : 'Декларант прошел электронный учет Шереметьево-Карго', 
+          done: true 
+        },
+        { 
+          title: language === 'EN' ? 'Flight Reserved & Manifested' : 'Рейс забронирован', 
+          desc: language === 'EN' ? 'Consolidated priority freight cargo flight via Boeing 747-800' : 'Консолидированный рейс грузового борта Boeing 747-800', 
+          done: seed % 2 !== 0 
+        },
+        { 
+          title: language === 'EN' ? 'Export Compliance Certified' : 'Экспортный контроль пройден', 
+          desc: language === 'EN' ? 'Authorized pristine packing invoice checked by regional hub directors' : 'Оригинальный упаковочный лист согласован в стране отправления', 
+          done: seed % 3 !== 0 
+        },
+        { 
+          title: language === 'EN' ? 'In Direct Airborne Transit' : 'Транспортировка в РФ', 
+          desc: language === 'EN' ? 'Direct flight inbound to consolidated regional custom line' : 'Рейс в транзите или готовится к погрузке', 
+          done: seed % 4 !== 0 
+        },
+        { 
+          title: language === 'EN' ? 'Hub Distribution & Sorting' : 'Сортировка Moscow Hub', 
+          desc: language === 'EN' ? 'Final barcode label scanning and courier agent routing' : 'Проверка штрих-кодов и подготовка к выдаче', 
+          done: false 
+        },
       ];
 
       setSearchResult({
         trackingCode: parsed,
         carrier: 'Siberia Cargo & Priority Express',
-        weight: `${(1.2 + (seed % 10) / 4).toFixed(2)} кг`,
+        weight: `${(1.2 + (seed % 10) / 4).toFixed(2)} ${language === 'EN' ? 'kg' : 'кг'}`,
         origin: seed % 2 === 0 ? 'Tokyo (NRT)' : 'Milan (MXP)',
-        eta: seed % 2 === 0 ? 'Ожидается в течение 6 дней' : 'Ожидается в течение 4 дней',
+        eta: seed % 2 === 0 
+          ? (language === 'EN' ? 'Expected within 6 days' : 'Ожидается в течение 6 дней') 
+          : (language === 'EN' ? 'Expected within 4 days' : 'Ожидается в течение 4 дней'),
         steps,
       });
       setSearching(false);
@@ -81,10 +105,18 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
       
       {/* Flight corridors dashboard header */}
       <div className="border-b-2 border-black pb-5">
-        <span className="text-[9px] font-mono bg-[#ffdd00] text-black border border-black px-2 py-0.5 uppercase tracking-widest font-black inline-block shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] mb-2">МЕЖДУНАРОДНЫЙ ТРАНЗИТНЫЙ ХАБ</span>
-        <h2 className="text-xl font-black text-[#1a1a1a] tracking-tight uppercase">Карго-Логистика Прямых Рейсов</h2>
+        <span className="text-[9px] font-mono bg-[#ffdd00] text-black border border-black px-2 py-0.5 uppercase tracking-widest font-black inline-block shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] mb-2">
+          {t('log.badge')}
+        </span>
+        <h2 className="text-xl font-black text-[#1a1a1a] tracking-tight uppercase">
+          {language === 'EN' ? 'Direct Air Cargo Flight Logistics' : 'Карго-Логистика Прямых Рейсов'}
+        </h2>
         <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
-          Каждое отправление выкупается на местах во флагманских бутиках, проходит консолидационную проверку и отправляется прямым грузовым бортом.
+          {language === 'EN' ? (
+            'Each premium order is physically acquired locally at official flagships, passes multi-factor customs consolidators, and enters rapid direct air transport.'
+          ) : (
+            'Каждое отправление выкупается на местах во флагманских бутиках, проходит консолидационную проверку и отправляется прямым грузовым бортом.'
+          )}
         </p>
       </div>
 
@@ -111,21 +143,21 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
                   {c.city} HUB
                 </h3>
                 <p className="text-[10px] text-gray-500 font-mono uppercase mt-0.5">
-                  Регион: {c.name}
+                  {language === 'EN' ? 'Region: ' : 'Регион: '}{tCountry(c.name)}
                 </p>
               </div>
 
               <div className="mt-5 border-t-2 border-dashed border-black pt-3">
                 <p className="text-[10px] font-mono text-[#1a1a1a] uppercase font-black leading-none flex items-center gap-1 bg-[#ffdd00]/45 p-1 border border-black/10">
                   <PlaneTakeoff size={11} className="transform rotate-45 text-black" />
-                  <span>{c.estimatedDeliveryDays} авиа</span>
+                  <span>{tDelivery(c.estimatedDeliveryDays)}</span>
                 </p>
                 <p className="text-[9px] text-[#444] font-mono mt-1.5 leading-tight font-bold">
-                  {c.cargoStatus}
+                  {tCargoStatus(c.cargoStatus)}
                 </p>
                 
                 <span className="inline-flex items-center gap-1 text-[9px] font-mono text-black mt-3 font-extrabold uppercase bg-white border border-black px-2 py-1 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] group-hover:bg-[#ffdd00]">
-                  Смотреть вещи <ArrowRight size={8} />
+                  {language === 'EN' ? 'Browse items' : 'Смотреть вещи'} <ArrowRight size={8} />
                 </span>
               </div>
             </div>
@@ -137,14 +169,14 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
       <div className="bg-[#f4f4f4] border-2 border-black p-5 sm:p-6 rounded-none shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">
         <h3 className="text-xs font-mono font-black text-black uppercase tracking-widest mb-3 flex items-center gap-2">
           <Compass size={14} className="text-black stroke-[2.5]" />
-          <span>КОНСОЛЬ УЧЕТА ТАМОЖЕННОЙ ДЕКЛАРАЦИИ КАРГО</span>
+          <span>{t('log.tracking_manifest')}</span>
         </h3>
         
         <div className="flex flex-col sm:flex-row gap-2">
           <input
             id="input-cargo-tracking"
             type="text"
-            placeholder="Пример: RUS-CARGO-451901"
+            placeholder={language === 'EN' ? 'e.g. RUS-CARGO-451901' : 'Пример: RUS-CARGO-451901'}
             value={searchCode}
             onChange={(e) => setSearchCode(e.target.value)}
             className="flex-1 bg-white border-2 border-black px-4 py-3 text-xs font-mono font-bold uppercase focus:outline-none focus:bg-[#eefaff] placeholder-neutral-400 rounded-none shadow-sm"
@@ -155,7 +187,7 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
             onClick={() => handleSearchTrack(searchCode)}
             className="bg-[#ffdd00] hover:bg-yellow-400 text-black text-xs font-mono font-black px-6 py-3 border-2 border-black uppercase tracking-widest cursor-pointer shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] active:shadow-none active:translate-y-0.5 transition-all"
           >
-            {searching ? 'Запрос БД...' : 'ПОИСК ДЕКЛАРАЦИИ'}
+            {searching ? (language === 'EN' ? 'QUERYING DB...' : 'Запрос БД...') : (language === 'EN' ? 'FIND DECLARATION' : 'ПОИСК ДЕКЛАРАЦИИ')}
           </button>
         </div>
 
@@ -170,27 +202,29 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
             {/* Short specs */}
             <div className="md:col-span-5 bg-white border-2 border-black p-4 rounded-none font-mono space-y-2.5 text-xs shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-left">
               <div className="flex justify-between border-b pb-1.5 border-neutral-100">
-                <span className="text-[#888] font-bold">Код декларации:</span>
+                <span className="text-[#888] font-bold">{language === 'EN' ? 'Declaration Code:' : 'Код декларации:'}</span>
                 <span className="font-extrabold text-black bg-[#ffdd00] px-1">{searchResult.trackingCode}</span>
               </div>
               <div className="flex justify-between border-b pb-1.5 border-neutral-100">
-                <span className="text-[#888] font-bold">Авиаперевозчик:</span>
+                <span className="text-[#888] font-bold">{language === 'EN' ? 'Air Carrier:' : 'Авиаперевозчик:'}</span>
                 <span className="font-extrabold text-black">{searchResult.carrier}</span>
               </div>
               <div className="flex justify-between border-b pb-1.5 border-neutral-100">
-                <span className="text-[#888] font-bold">Таможенный вес:</span>
+                <span className="text-[#888] font-bold">{language === 'EN' ? 'Customs Weight:' : 'Таможенный вес:'}</span>
                 <span className="font-extrabold text-black">{searchResult.weight}</span>
               </div>
               <div className="flex justify-between border-t border-dashed border-black pt-2 font-black text-black mt-2 bg-[#ffdd00]/20 px-2 py-1 border">
-                <span>Прогноз на хаб:</span>
+                <span>{language === 'EN' ? 'ETA Forecast:' : 'Прогноз на хаб:'}</span>
                 <span>{searchResult.eta}</span>
               </div>
             </div>
 
             {/* Visual step pipeline */}
             <div className="md:col-span-1" />
-            <div className="md:col-span-6 bg-white border-2 border-black p-4 rounded-none shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] space-y-3.5 text-left">
-              <span className="text-[9px] font-mono text-black bg-[#f4f4f4] px-2 py-0.5 border border-black uppercase tracking-widest block font-black w-max">Радар Таможенного Учета РФ</span>
+            <div className="md:col-span-6 bg-white border-2 border-black p-4 rounded-none shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] space-y-3.5 text-left">
+              <span className="text-[9px] font-mono text-black bg-[#f4f4f4] px-2 py-0.5 border border-black uppercase tracking-widest block font-black w-max">
+                {language === 'EN' ? 'SATELLITE DOWNLINK BEACON ACTIVE' : 'Радар Таможенного Учета РФ'}
+              </span>
               
               <div className="space-y-3">
                 {searchResult.steps.map((step: any, idx: number) => (
@@ -230,14 +264,14 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
       <div className="bg-white border-2 border-black p-5 sm:p-6 rounded-none shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] space-y-5">
         <div>
           <span className="text-[9px] font-mono bg-[#1a1a1a] text-[#ffdd00] border border-black px-2 py-0.5 uppercase tracking-widest font-black inline-block mb-1.5">
-            ЛАБОРАТОРИЯ ТРАНЗИТА ПАСПОРТ-КАРГО
+            {t('log.sim_laboratory')}
           </span>
           <h3 className="text-sm font-black text-black tracking-tight uppercase flex items-center gap-2">
             <Layers size={14} className="stroke-[2.5]" />
-            <span>Симулятор консолидированного импорта</span>
+            <span>{t('log.sim_title')}</span>
           </h3>
           <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
-            Как работает доставка, если вы заказываете брендированные вещи из разных стран одновременно? Выберите параметры ниже, чтобы увидеть карту физических перемещений и снижения пошлин.
+            {t('log.sim_desc')}
           </p>
         </div>
 
@@ -248,7 +282,7 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
             {/* Step 1: Destination location */}
             <div className="space-y-2">
               <label className="text-[10px] font-mono uppercase text-black font-black block tracking-wider">
-                1. Страна вашего нахождения (Точка доставки и финального вылета):
+                {t('log.sim_step1')}
               </label>
               <div className="flex flex-wrap gap-1.5">
                 {[
@@ -271,7 +305,7 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
                     }`}
                   >
                     <span>{item.flag}</span>
-                    <span>{item.name}</span>
+                    <span>{tCountry(item.name)}</span>
                   </button>
                 ))}
               </div>
@@ -280,7 +314,7 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
             {/* Step 2: Sourcing boutiques */}
             <div className="space-y-2">
               <label className="text-[10px] font-mono uppercase text-black font-black block tracking-wider">
-                2. Бутики выкупа (Выберите откуда заказываете вещи):
+                {t('log.sim_step2')}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {[
@@ -314,7 +348,7 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
                         <span className="text-[10px] font-mono font-black text-black">{item.city}</span>
                         <span className="text-xs">{item.flag}</span>
                       </div>
-                      <span className="text-[10px] text-neutral-500 font-semibold">{item.name}</span>
+                      <span className="text-[10px] text-neutral-500 font-semibold">{tCountry(item.name)}</span>
                     </button>
                   );
                 })}
@@ -327,10 +361,10 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-[9px] font-mono bg-emerald-500 text-white border border-black px-1.5 uppercase font-medium">
-                  СХЕМА ОДНОВРЕМЕННОЙ КОНСОЛИДАЦИИ
+                  {t('log.sim_scheme')}
                 </span>
                 <span className="text-[11px] font-mono font-black text-black">
-                  ЛОКАЦИЯ: {simLocation.toUpperCase()}
+                  {t('log.sim_location_label')} {tCountry(simLocation).toUpperCase()}
                 </span>
               </div>
 
@@ -342,18 +376,25 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
                     1
                   </div>
                   <div className="text-xs font-sans">
-                    <p className="font-extrabold text-[#1a1a1a] uppercase">ВЫКУП В СТРАНАХ ТРАНЗИТА</p>
+                    <p className="font-extrabold text-[#1a1a1a] uppercase">{t('log.sim_step1_title')}</p>
                     <p className="text-neutral-500 text-[10px] mt-0.5 leading-snug">
-                      Наши байеры одновременно скупают позиции в бутиках:{' '}
-                      <strong>
-                        {simSourced
-                          .map((code) => {
-                            const found = COUNTRIES.find((c) => c.code === code);
-                            return found ? `${found.flag} ${found.name}` : code;
-                          })
-                          .join(', ')}
-                      </strong>
-                      . Вещи страхуются и отправляются местным авиафрахтом.
+                      {language === 'EN' ? (
+                        <>Our buyers acquire items simultaneously across physical boutiques in <strong>{simSourced.map(code => {
+                          const found = COUNTRIES.find(c => c.code === code);
+                          return found ? `${found.flag} ${tCountry(found.name)}` : code;
+                        }).join(', ')}</strong>. Parcels are secured with immediate transport.</>
+                      ) : (
+                        <>Наши байеры одновременно скупают позиции в бутиках:{' '}
+                        <strong>
+                          {simSourced
+                            .map((code) => {
+                              const found = COUNTRIES.find((c) => c.code === code);
+                              return found ? `${found.flag} ${found.name}` : code;
+                            })
+                            .join(', ')}
+                        </strong>
+                        . Вещи страхуются и отправляются местным авиафрахтом.</>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -367,9 +408,13 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
                     2
                   </div>
                   <div className="text-xs font-sans">
-                    <p className="font-extrabold text-[#1a1a1a] uppercase">HAБ КОНСОЛИДАЦИИ В {simLocation.toUpperCase()}</p>
+                    <p className="font-extrabold text-[#1a1a1a] uppercase">{t('log.sim_step2_title', { country: tCountry(simLocation).toUpperCase() })}</p>
                     <p className="text-neutral-500 text-[10px] mt-0.5 leading-snug">
-                      Все коробки поступают на наш единый логистический терминал в **{simLocation}**. Проводится переупаковка в общую защитную тару, формируется одна накладная, что **исключает начисление раздельных пошлин**.
+                      {language === 'EN' ? (
+                        <>All consignments fly to our unified sorting and staging hub in <strong>{tCountry(simLocation)}</strong>. Over-packing is completed, combining parcels into one cargo invoice which <strong>completely bypasses multiple customs duties</strong>.</>
+                      ) : (
+                        <>Все коробки поступают на наш единый логистический терминал в **{simLocation}**. Проводится переупаковка в общую защитную тару, формируется одна накладная, что **исключает начисление раздельных пошлин**.</>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -383,9 +428,15 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
                     3
                   </div>
                   <div className="text-xs font-sans">
-                    <p className="font-extrabold text-[#1a1a1a] uppercase bg-[#ffdd00]/20 w-max px-1">ЕДИНАЯ ОТПРАВКА ИЗ {simLocation.toUpperCase()}</p>
+                    <p className="font-extrabold text-[#1a1a1a] uppercase bg-[#ffdd00]/20 w-max px-1">
+                      {t('log.sim_step3_title', { country: tCountry(simLocation).toUpperCase() })}
+                    </p>
                     <p className="text-neutral-500 text-[10px] mt-0.5 leading-snug font-semibold">
-                      Единая посылка отправляется **из {simLocation}** прямо к вам домой курьерской службой СДЭК/Express. Время в пути по вашей стране составит всего 1-3 дня с момента прибытия на внутренний склад!
+                      {language === 'EN' ? (
+                        <>A single compiled parcel travels <strong>from {tCountry(simLocation)}</strong> straight to your home address via CDEK/Express courier. Delivery within your region takes only 1-3 days from hub arrival!</>
+                      ) : (
+                        <>Единая посылка отправляется **из {simLocation}** прямо к вам домой курьерской службой СДЭК/Express. Время в пути по вашей стране составит всего 1-3 дня с момента прибытия на внутренний склад!</>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -395,15 +446,15 @@ export default function LogisticsHub({ initialSearchCode = '', onSelectCountryCo
             {/* Calculations Simulation status bar */}
             <div className="mt-5 border border-black bg-black text-white p-3 font-mono text-left space-y-1 rounded-none shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
               <div className="flex justify-between text-[11px]">
-                <span className="text-neutral-400">ПОШЛИНА ЗА ОТДЕЛЬНЫЙ ИМПОРТ:</span>
-                <span className="line-through text-[#ff4d4d]">{(3500 * simSourced.length).toLocaleString('ru-RU')} ₽ (за каждую страну)</span>
+                <span className="text-neutral-400">{t('log.sim_fee_separate')}</span>
+                <span className="line-through text-[#ff4d4d]">{(3500 * simSourced.length).toLocaleString('ru-RU')} ₽ {t('log.sim_fee_separate_sub')}</span>
               </div>
               <div className="flex justify-between text-[11px] font-extrabold text-[#ffdd00] border-t border-[#333] pt-1">
-                <span>ПОШЛИНА ПРИ КОНСОЛИДАЦИИ:</span>
-                <span>0 ₽ (Доставка из {simLocation} как внутренний вылет!)</span>
+                <span>{t('log.sim_fee_consolidated')}</span>
+                <span>{t('log.sim_fee_consolidated_val', { country: tCountry(simLocation) })}</span>
               </div>
               <p className="text-[9px] text-neutral-400 leading-tight mt-1.5 uppercase tracking-wide">
-                * Наш метод снижает расходы на доставку до 45% по сравнению с раздельными посылками от разных курьеров.
+                {t('log.sim_disclaim')}
               </p>
             </div>
 

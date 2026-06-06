@@ -1,6 +1,7 @@
 export interface Product {
   id: string;
   name: string;
+  nameEn?: string;
   brand: string;
   category: 'Hoodies' | 'T-Shirts' | 'Outerwear' | 'Accessories' | 'Sneakers';
   country: 'JAPAN' | 'USA' | 'ITALY' | 'FRANCE' | 'KOREA';
@@ -11,7 +12,9 @@ export interface Product {
   sizes: string[];
   images: string[];
   description: string;
+  descriptionEn?: string;
   details: string[];
+  detailsEn?: string[];
   weightKg: number;
   slug: string;
   stock: number;

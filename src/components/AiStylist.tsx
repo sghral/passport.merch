@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Send, Bot, User, RefreshCw, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Product, Message } from '../types';
 import { PRODUCTS } from '../data';
+import { useLanguage } from './LanguageContext';
 
 interface AiStylistProps {
   selectedProductContext: Product | null;
@@ -24,10 +25,11 @@ export default function AiStylist({
   onOpenProduct,
   onQuickAddToCart,
 }: AiStylistProps) {
+  const { language, tCountry, tProduct } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'model',
-      content: 'Приветствуем в премиальном импорт-сервисе **PASSPORT**. Я ваш персональный ИИ-стилист и байер.\n\nЯ знаю каждый шов вещей из нашего селективного каталога (Япония, Корея, Италия, Франция, США). Расскажите о ваших предпочтениях по брендам, стилю или вашему росту/размерам — и я соберу для вас идеальный образ.',
+      content: '',
     },
   ]);
 
@@ -35,15 +37,38 @@ export default function AiStylist({
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Sync greeting when language changes or initializes
+  useEffect(() => {
+    if (messages.length <= 1) {
+      setMessages([
+        {
+          role: 'model',
+          content: language === 'EN'
+            ? 'Welcome to the premium **PASSPORT** sourcing concierge. I am your personal AI Stylist and boutique advisor.\n\nI know every single thread of our curations from Japan, South Korea, Italy, France, and the USA. Tell me about your brand interests, sizing questions, or desired fits — and I will suggest the ultimate localized streetwear combination for you.'
+            : 'Приветствуем в премиальном импорт-сервисе **PASSPORT**. Я ваш персональный ИИ-стилист и байер.\n\nЯ знаю каждый шов вещей из нашего селективного каталога (Япония, Корея, Италия, Франция, США). Расскажите о ваших предпочтениях по брендам, стилю или вашему росту/размерам — и я соберу для вас идеальный образ.',
+        }
+      ]);
+    }
+  }, [language]);
+
+  const activePresets = language === 'EN' ? [
+    { label: '🎌 Japanese Aesthetic', query: 'What items do we have from premium Japan and what is their brand philosophy?' },
+    { label: '📐 Size Guidance', query: 'How should I choose sizing for oversized hoodies like ADER Error and Supreme? What fits height 180cm?' },
+    { label: '🧥 Tech-Wear Italy', query: 'Tell me about the high-performance Stone Island jackets available in stock' },
+    { label: '🔥 Assemble Outfit', query: 'Build me a styling multi-country streetwear outfit from our catalog' },
+  ] : PRESETS;
+
   // Trigger inquiry automatically if a context product is injected
   useEffect(() => {
     if (selectedProductContext) {
-      const initQuery = `Привет! Расскажи подробнее про ${selectedProductContext.brand} "${selectedProductContext.name}". Как сидит эта вещь, каково качество материалов и с чем ее посоветуешь носить из нашего каталога?`;
+      const initQuery = language === 'EN'
+        ? `Hello! Tell me in detail about ${selectedProductContext.brand} "${selectedProductContext.name}". How does this item fit, what is the textile craftsmanship like, and what would you recommend pairing it with from our collection?`
+        : `Привет! Расскажи подробнее про ${selectedProductContext.brand} "${selectedProductContext.name}". Как сидит эта вещь, каково качество материалов и с чем ее посоветуешь носить из нашего каталога?`;
       setInputValue('');
       handleSendMessage(initQuery);
       onClearContext(); // clear so we don't repeat loop if user changes tab
     }
-  }, [selectedProductContext]);
+  }, [selectedProductContext, language]);
 
   // Scroll to bottom
   useEffect(() => {
@@ -64,8 +89,9 @@ export default function AiStylist({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...messages, userMessage],
+          messages: [...messages, userMessage].filter(m => m.content), // filter empty greetings
           selectedProductContext: selectedProductContext?.name || null,
+          language: language,
         }),
       });
 
@@ -81,7 +107,9 @@ export default function AiStylist({
         ...prev,
         {
           role: 'model',
-          content: 'Извините, не удалось подключиться к таможенному ИИ-серверу для обработки запроса. Проверьте соединение или наличие ключа API в настройках Secrets компьютера.',
+          content: language === 'EN'
+            ? 'Apologies, we could not connect to the global sourcing AI server to process your request. Please confirm your internet connection and verify that your GEMINI_API_KEY has been declared in container secrets.'
+            : 'Извините, не удалось подключиться к таможенному ИИ-серверу для обработки запроса. Проверьте соединение или наличие ключа API в настройках Secrets компьютера.',
         },
       ]);
     } finally {
@@ -180,7 +208,7 @@ export default function AiStylist({
                         <img
                           referrerPolicy="no-referrer"
                           src={prod.images[0]}
-                          alt={prod.name}
+                          alt={tProduct(prod).name}
                           className="w-12 h-16 object-cover bg-neutral-100 border border-black/10 shrink-0"
                         />
                         <div className="flex-1 flex flex-col justify-between min-w-0">
@@ -194,10 +222,10 @@ export default function AiStylist({
                               </span>
                             </div>
                             <h4 className="text-[11px] font-black text-black tracking-tight mt-1 truncate uppercase">
-                              {prod.name}
+                              {tProduct(prod).name}
                             </h4>
                             <p className="text-[9px] font-mono text-neutral-600 font-bold mt-0.5">
-                              {prod.countryFlag} {prod.countryName} HUB
+                              {prod.countryFlag} {tCountry(prod.countryName)} HUB
                             </p>
                           </div>
 
@@ -207,7 +235,7 @@ export default function AiStylist({
                               onClick={() => onOpenProduct(prod)}
                               className="text-[9px] font-mono uppercase font-black text-black underline hover:text-[#ffdd00] flex items-center gap-0.5 cursor-pointer"
                             >
-                              <span>ИНФО</span>
+                              <span>{language === 'EN' ? 'INFO' : 'ИНФО'}</span>
                               <ArrowRight size={8} />
                             </button>
                             <span className="text-neutral-300 text-[10px]">|</span>
@@ -217,7 +245,7 @@ export default function AiStylist({
                               className="text-[9px] font-mono uppercase font-black text-black hover:bg-[#ffdd00] border border-black px-1.5 py-0.5 bg-neutral-50 flex items-center gap-1 cursor-pointer shadow-[1px_1px_0px_rgba(0,0,0,1)] active:shadow-none"
                             >
                               <ShoppingBag size={8} />
-                              <span>КУПИТЬ ({prod.sizes[0]})</span>
+                              <span>{language === 'EN' ? `BUY (${prod.sizes[0]})` : `КУПИТЬ (${prod.sizes[0]})`}</span>
                             </button>
                           </div>
                         </div>
@@ -250,7 +278,7 @@ export default function AiStylist({
             </div>
             <div className="bg-white text-black border-2 border-black p-4 text-xs font-mono font-bold flex items-center gap-2 shadow-[3px_3px_0px_rgba(0,0,0,1)]">
               <RefreshCw size={12} className="animate-spin text-black" />
-              <span>Поиск селекционных лотов, замер веса отправления...</span>
+              <span>{language === 'EN' ? 'Searching selective lots, checking shipment weights...' : 'Поиск селекционных лотов, замер веса отправления...'}</span>
             </div>
           </motion.div>
         )}
@@ -262,10 +290,10 @@ export default function AiStylist({
         <div className="mt-4 shrink-0">
           <p className="text-[10px] font-mono text-black uppercase tracking-widest font-black mb-2 flex items-center gap-1">
             <Sparkles size={11} className="text-[#ff9900]" />
-            <span>Варианты запроса:</span>
+            <span>{language === 'EN' ? 'Suggested Queries:' : 'Варианты запроса:'}</span>
           </p>
           <div className="flex flex-wrap gap-2">
-            {PRESETS.map((p, idx) => (
+            {activePresets.map((p, idx) => (
               <button
                 key={idx}
                 id={`btn-preset-query-${idx}`}
@@ -284,7 +312,7 @@ export default function AiStylist({
         <input
           id="input-ai-stylist-chat"
           type="text"
-          placeholder="Спросите стилиста (оверсайз худи, подбор размера, бренды Италии...)"
+          placeholder={language === 'EN' ? 'Ask the boutique stylist (sizing fit, brand origins, outfit pairings...)' : 'Спросите стилиста (оверсайз худи, подбор размера, бренды Италии...)'}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={(e) => {

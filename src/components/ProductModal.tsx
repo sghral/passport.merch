@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Sparkles, Globe, Scale, ShieldCheck, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
 import { Product } from '../types';
+import { useLanguage } from './LanguageContext';
 
 interface ProductModalProps {
   product: Product | null;
@@ -11,9 +12,12 @@ interface ProductModalProps {
 }
 
 export default function ProductModal({ product, onClose, onAddToCart, onConsultStylist }: ProductModalProps) {
+  const { language, tCountry, tProduct } = useLanguage();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [isAdded, setIsAdded] = useState(false);
+
+  const localized = product ? tProduct(product) : { name: '', description: '', details: [] };
 
   // Reset states on product change
   useEffect(() => {
@@ -143,12 +147,12 @@ export default function ProductModal({ product, onClose, onAddToCart, onConsultS
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{product.countryFlag}</span>
                   <div>
-                    <p className="text-[10px] font-mono leading-none text-neutral-400 uppercase tracking-widest font-extrabold">Страна импорта</p>
-                    <p className="text-xs font-mono font-black uppercase text-[#1a1a1a] mt-1">{product.countryName} HUB</p>
+                    <p className="text-[10px] font-mono leading-none text-neutral-400 uppercase tracking-widest font-extrabold">{language === 'EN' ? 'Sourcing Hub' : 'Страна импорта'}</p>
+                    <p className="text-xs font-mono font-black uppercase text-[#1a1a1a] mt-1">{tCountry(product.countryName)} HUB</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] font-mono leading-none text-neutral-400 uppercase tracking-widest font-extrabold">Ориг. Ретейл</p>
+                  <p className="text-[10px] font-mono leading-none text-neutral-400 uppercase tracking-widest font-extrabold">{language === 'EN' ? 'Orig. Retail' : 'Ориг. Ретейл'}</p>
                   <p className="text-xs font-mono text-black font-black mt-1 bg-[#f4f4f4] border border-black px-2 py-0.5">{product.originalPrice}</p>
                 </div>
               </div>
@@ -158,7 +162,7 @@ export default function ProductModal({ product, onClose, onAddToCart, onConsultS
                 {product.brand}
               </p>
               <h2 id="modal-product-title" className="text-xl sm:text-2xl font-black tracking-tight uppercase text-neutral-900 mt-1.5">
-                {product.name}
+                {localized.name}
               </h2>
 
               {/* Price Container */}
@@ -166,25 +170,25 @@ export default function ProductModal({ product, onClose, onAddToCart, onConsultS
                 <span className="text-2xl font-mono font-black text-neutral-900 bg-[#ffdd00] px-3 py-1 border-2 border-black inline-block shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                   {product.price.toLocaleString('ru-RU')} ₽
                 </span>
-                <span className="text-xs font-mono text-neutral-500 font-extrabold">Все тарифы включены</span>
+                <span className="text-xs font-mono text-neutral-500 font-extrabold">{language === 'EN' ? 'All Tariffs Included' : 'Все тарифы включены'}</span>
               </div>
 
               {/* Description */}
               <div className="text-sm text-neutral-700 leading-relaxed space-y-2 mb-6">
-                <p>{product.description}</p>
+                <p>{localized.description}</p>
               </div>
 
               {/* Sizeguide Grid */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-mono text-gray-900 uppercase tracking-widest font-black">Доступные размеры:</span>
+                  <span className="text-xs font-mono text-gray-900 uppercase tracking-widest font-black">{language === 'EN' ? 'Available Sizes:' : 'Доступные размеры:'}</span>
                   <button
                     id="btn-ai-consult-inline"
                     onClick={() => onConsultStylist(product)}
                     className="flex items-center gap-1 text-[11px] font-mono text-black underline underline-offset-2 hover:bg-[#ffdd00] px-1.5 py-0.5 border border-black font-bold tracking-wider transition-colors"
                   >
                     <Sparkles size={12} className="text-indigo-600" />
-                    <span>Подобрать размер через ИИ</span>
+                    <span>{language === 'EN' ? 'Size Match via AI' : 'Подобрать размер через ИИ'}</span>
                   </button>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
@@ -207,9 +211,9 @@ export default function ProductModal({ product, onClose, onAddToCart, onConsultS
 
               {/* Custom specs checklist */}
               <div className="bg-[#f4f4f4] border-2 border-black p-4 mb-6 rounded-none">
-                <p className="text-[10px] font-mono text-[#1a1a1a] uppercase tracking-widest font-black mb-3 border-b border-black/10 pb-1.5">Спецификация выкупаемого лота:</p>
+                <p className="text-[10px] font-mono text-[#1a1a1a] uppercase tracking-widest font-black mb-3 border-b border-black/10 pb-1.5">{language === 'EN' ? 'Sourced Lot Specs:' : 'Спецификация выкупаемого лота:'}</p>
                 <div className="space-y-2.5 text-left">
-                  {product.details.map((detail, idx) => (
+                  {localized.details.map((detail, idx) => (
                     <div key={idx} className="flex items-start gap-2 text-xs text-gray-800 font-medium">
                       <span className="text-[#1a1a1a] font-bold mt-0.5 animate-pulse">■</span>
                       <span>{detail}</span>
@@ -224,21 +228,21 @@ export default function ProductModal({ product, onClose, onAddToCart, onConsultS
               {/* Import specifications */}
               <div className="grid grid-cols-3 gap-2 border-t-2 border-b-2 border-black py-4 text-center bg-[#f4f4f4]">
                 <div className="bg-white border-2 border-black p-2 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-center items-center">
-                  <p className="text-[8px] font-mono uppercase text-neutral-400 font-extrabold leading-tight">Вес отправления</p>
+                  <p className="text-[8px] font-mono uppercase text-neutral-400 font-extrabold leading-tight">{language === 'EN' ? 'Dispatch Weight' : 'Вес отправления'}</p>
                   <div className="flex items-center justify-center gap-1 text-xs font-mono font-black text-neutral-950 mt-1">
                     <Scale size={11} />
-                    <span>{product.weightKg} кг</span>
+                    <span>{product.weightKg} {language === 'EN' ? 'kg' : 'кг'}</span>
                   </div>
                 </div>
                 <div className="bg-white border-2 border-black p-2 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-center items-center">
-                  <p className="text-[8px] font-mono uppercase text-neutral-400 font-extrabold leading-tight">ЭТАЛОН</p>
+                  <p className="text-[8px] font-mono uppercase text-neutral-400 font-extrabold leading-tight">{language === 'EN' ? 'STANDARD' : 'ЭТАЛОН'}</p>
                   <div className="flex items-center justify-center gap-0.5 text-xs font-mono font-black text-neutral-950 mt-1">
                     <ShieldCheck size={11} className="text-emerald-500" />
                     <span>Original</span>
                   </div>
                 </div>
                 <div className="bg-white border-2 border-black p-2 rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-center items-center">
-                  <p className="text-[8px] font-mono uppercase text-neutral-400 font-extrabold leading-tight">СТАТУС ТАРИФА</p>
+                  <p className="text-[8px] font-mono uppercase text-neutral-400 font-extrabold leading-tight">{language === 'EN' ? 'TARIFF STATUS' : 'СТАТУС ТАРИФА'}</p>
                   <div className="flex items-center justify-center gap-0.5 text-xs font-mono font-black text-neutral-950 mt-1">
                     <Globe size={11} className="text-sky-500" />
                     <span>Air Priority</span>
@@ -262,7 +266,7 @@ export default function ProductModal({ product, onClose, onAddToCart, onConsultS
                   }`}
                 >
                   <ShoppingCart size={14} />
-                  <span>{isAdded ? 'ДОБАВЛЕНО В КОРП!' : selectedSize ? 'В ГРУЗ КОРЗИНУ' : 'УКАЖИТЕ ВАШ РАЗМЕР'}</span>
+                  <span>{isAdded ? (language === 'EN' ? 'ADDED TO CARGO!' : 'ДОБАВЛЕНО В КОРЗИНУ!') : selectedSize ? (language === 'EN' ? 'ADD TO CARGO' : 'В ГРУЗ КОРЗИНУ') : (language === 'EN' ? 'SELECT YOUR SIZE' : 'УКАЖИТЕ ВАШ РАЗМЕР')}</span>
                 </button>
 
                 <button
@@ -272,7 +276,7 @@ export default function ProductModal({ product, onClose, onAddToCart, onConsultS
                   className="bg-white border-2 border-black hover:bg-[#ffdd00]/10 text-black py-4 px-5 text-xs font-mono uppercase tracking-widest font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[1px]"
                 >
                   <Sparkles size={14} className="text-indigo-600" />
-                  <span>ИИ совет</span>
+                  <span>{language === 'EN' ? 'AI CONSULT' : 'ИИ совет'}</span>
                 </button>
               </div>
             </div>

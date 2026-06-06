@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Trash2, ShoppingBag, Plane, FileText, CheckCircle2, RefreshCw, Globe, MapPin } from 'lucide-react';
 import { CartItem } from '../types';
 import { COUNTRIES } from '../data';
+import { useLanguage } from './LanguageContext';
 
 export const COUNTRY_CITIES: Record<string, string[]> = {
   'Россия': ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань', 'Владивосток'],
@@ -41,6 +42,7 @@ export default function CartDrawer({
   onRemoveItem,
   onClearCart,
 }: CartDrawerProps) {
+  const { language, tCountry, tProduct } = useLanguage();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [orderCompleted, setOrderCompleted] = useState(false);
   const [generatedReceipt, setGeneratedReceipt] = useState<string | null>(null);
@@ -68,7 +70,7 @@ export default function CartDrawer({
       setPromoDiscount(0.1); // 10% discount
     } else {
       setPromoDiscount(0);
-      alert('Промокод не найден. Попробуйте PASSPORT10');
+      alert(language === 'EN' ? 'Promo code not recognized. Try PASSPORT10' : 'Промокод не найден. Попробуйте PASSPORT10');
     }
   };
 
@@ -94,7 +96,7 @@ export default function CartDrawer({
   const getSourcingCountries = () => {
     const list = cartItems.map((item) => {
       const config = COUNTRIES.find((c) => c.code === item.product.country);
-      return config ? `${config.flag} ${config.name}` : item.product.country;
+      return config ? `${config.flag} ${tCountry(config.name)}` : item.product.country;
     });
     return Array.from(new Set(list)).join(', ');
   };
@@ -103,7 +105,7 @@ export default function CartDrawer({
     e.preventDefault();
 
     if (!fullName || !phone || !address) {
-      alert('Пожалуйста, заполните необходимые поля: ФИО, Телефон и Адрес');
+      alert(language === 'EN' ? 'Please fill in required fields: Full Name, Phone and Address' : 'Пожалуйста, заполните необходимые поля: ФИО, Телефон и Адрес');
       return;
     }
 
@@ -175,7 +177,7 @@ export default function CartDrawer({
                 <div className="flex items-center gap-2">
                   <ShoppingBag size={18} className="text-black stroke-[2.5]" />
                   <h2 className="text-xs font-mono font-black uppercase tracking-widest text-black">
-                    ТАМОЖЕННЫЙ ДЕКЛАРАНТ ({cartItems.length})
+                    {language === 'EN' ? `CUSTOMS DECLARANT (${cartItems.length})` : `ТАМОЖЕННЫЙ ДЕКЛАРАНТ (${cartItems.length})`}
                   </h2>
                 </div>
                 <button
@@ -203,13 +205,17 @@ export default function CartDrawer({
 
                     <div className="space-y-2">
                       <p className="text-[10px] font-mono uppercase bg-[#eefaff] border border-black/10 px-2 py-0.5 text-black font-black tracking-widest inline-block">
-                        ДЕКЛАРАЦИЯ КАРГО ОДОБРЕНА
+                        {language === 'EN' ? 'CARGO DECLARATION APPROVED' : 'ДЕКЛАРАЦИЯ КАРГО ОДОБРЕНА'}
                       </p>
                       <h3 className="text-xl font-black tracking-tight uppercase text-neutral-900">
-                        Груз консолидирован под {locationCountry}
+                        {language === 'EN' ? `Cargo Consolidated under ${tCountry(locationCountry)}` : `Груз консолидирован под ${locationCountry}`}
                       </h3>
                       <p className="text-xs text-neutral-500 max-w-xs mx-auto leading-relaxed font-semibold">
-                        Товары выкупаются в разных странах и досылаются на единый внутренний хаб в странe **{locationCountry}** {COUNTRY_FLAGS[locationCountry]}, откуда осуществляется финальная отправка на ваш адрес.
+                        {language === 'EN' ? (
+                          `Items are procured in various countries and delivered to a single internal hub in the country of ${tCountry(locationCountry)} ${COUNTRY_FLAGS[locationCountry]} for consolidated export to your address.`
+                        ) : (
+                          `Товары выкупаются в разных странах и досылаются на единый внутренний хаб в странe **${locationCountry}** ${COUNTRY_FLAGS[locationCountry]}, откуда осуществляется финальная отправка на ваш адрес.`
+                        )}
                       </p>
                     </div>
 
@@ -222,34 +228,38 @@ export default function CartDrawer({
 
                       <div className="space-y-2 text-xs">
                         <div className="flex justify-between">
-                          <span className="text-neutral-400">Номер накладной:</span>
+                          <span className="text-neutral-400">{language === 'EN' ? 'Waybill Code:' : 'Номер накладной:'}</span>
                           <span className="font-extrabold text-black">{generatedReceipt}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-neutral-400">Получатель:</span>
+                          <span className="text-neutral-400">{language === 'EN' ? 'Recipient Name:' : 'Получатель:'}</span>
                           <span className="font-extrabold text-black whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">{fullName}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-neutral-400">Хаб снабжения:</span>
-                          <span className="font-extrabold text-black">{getSourcingCountries() || 'Транзит'}</span>
+                          <span className="text-neutral-400">{language === 'EN' ? 'Procurement Hub:' : 'Хаб снабжения:'}</span>
+                          <span className="font-extrabold text-black">{getSourcingCountries() || (language === 'EN' ? 'Transit' : 'Транзит')}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-neutral-400">Регион нахождения:</span>
-                          <span className="font-bold text-black">{locationCountry} {COUNTRY_FLAGS[locationCountry]}</span>
+                          <span className="text-neutral-400">{language === 'EN' ? 'Consolidation Hub:' : 'Регион нахождения:'}</span>
+                          <span className="font-bold text-black">{tCountry(locationCountry)} {COUNTRY_FLAGS[locationCountry]}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-neutral-400">Общая масса груза:</span>
-                          <span className="font-extrabold text-black">{calculateTotalWeight()} кг</span>
+                          <span className="text-neutral-400">{language === 'EN' ? 'Total Mass:' : 'Общая масса груза:'}</span>
+                          <span className="font-extrabold text-black">{calculateTotalWeight()} {language === 'EN' ? 'kg' : 'кг'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-neutral-400">Пункт выдачи:</span>
+                          <span className="text-neutral-400">{language === 'EN' ? 'Destination City:' : 'Пункт выдачи:'}</span>
                           <span className="font-extrabold text-black">{city}</span>
                         </div>
                       </div>
 
                       <div className="border-t border-dashed border-neutral-300 pt-3 text-center">
                         <p className="text-[9px] text-[#555] font-semibold leading-tight">
-                          * Ожидайте таможенный досмотр. Оплата доставки производится по факту прибытия или авиа-счета.
+                          {language === 'EN' ? (
+                            '* Custom inspection pending. Shipping fee is paid upon arrival or air cargo invoice.'
+                          ) : (
+                            '* Ожидайте таможенный досмотр. Оплата доставки производится по факту прибытия или авиа-счета.'
+                          )}
                         </p>
                         {/* Fake barcode block */}
                         <div className="mt-3 flex flex-col items-center">
@@ -265,7 +275,7 @@ export default function CartDrawer({
                       type="button"
                       className="w-full bg-[#ffdd00] hover:bg-yellow-400 border-2 border-black text-black py-4 text-xs font-mono font-black tracking-widest uppercase cursor-pointer shadow-[3px_3px_0px_rgba(0,0,0,1)] transition-all"
                     >
-                      Вернуться в каталог
+                      {language === 'EN' ? 'Return to Catalog' : 'Вернуться в каталог'}
                     </button>
                   </motion.div>
                 ) : cartItems.length === 0 ? (
@@ -275,9 +285,15 @@ export default function CartDrawer({
                       <ShoppingBag size={28} className="text-black" />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-mono font-black uppercase tracking-wider text-black">Ваша декларация пуста</p>
+                      <p className="text-xs font-mono font-black uppercase tracking-wider text-black">
+                        {language === 'EN' ? 'Your customs declaration is empty' : 'Ваша декларация пуста'}
+                      </p>
                       <p className="text-xs text-neutral-400 max-w-xs leading-relaxed font-semibold">
-                        Добавьте эксклюзивные лоты из Японии, Кореи или США, чтобы сформировать международную посылку.
+                        {language === 'EN' ? (
+                          'Add exclusive lots sourced from Milan, Seoul, Tokyo or New York to compile a customs cargo shipment.'
+                        ) : (
+                          'Добавьте эксклюзивные лоты из Японии, Кореи или США, чтобы сформировать международную посылку.'
+                        )}
                       </p>
                     </div>
                   </div>
@@ -286,7 +302,9 @@ export default function CartDrawer({
                   <div className="space-y-6">
                     {/* Items stack */}
                     <div className="space-y-3.5">
-                      <p className="text-[9px] font-mono text-black font-black uppercase tracking-widest bg-[#f4f4f4] border border-black px-2.5 py-0.5 w-max">Выбранные лоты для импорта</p>
+                      <p className="text-[9px] font-mono text-black font-black uppercase tracking-widest bg-[#f4f4f4] border border-black px-2.5 py-0.5 w-max">
+                        {language === 'EN' ? 'RESERVED LOTS FOR DIRECT IMPORT' : 'ВЫБРАННЫЕ ЛОТЫ ДЛЯ ИМПОРТА'}
+                      </p>
                       {cartItems.map((item) => (
                         <div
                           key={`${item.product.id}-${item.selectedSize}`}
@@ -295,14 +313,14 @@ export default function CartDrawer({
                           <img
                             referrerPolicy="no-referrer"
                             src={item.product.images[0]}
-                            alt={item.product.name}
+                            alt={tProduct(item.product).name}
                             className="w-16 aspect-[3/4] object-cover bg-neutral-100 border border-black/15"
                           />
                           <div className="flex-1 flex flex-col justify-between">
                             <div>
                               <div className="flex justify-between items-start gap-1">
                                 <span className="text-[9px] font-mono bg-[#ffdd00] text-black border border-black px-2 py-0.2 uppercase tracking-wide font-black">
-                                  {item.product.countryFlag} {item.product.countryName} HUB
+                                  {item.product.countryFlag} {tCountry(item.product.countryName)} HUB
                                 </span>
                                 <button
                                   id={`btn-remove-cart-${item.product.id}-${item.selectedSize}`}
@@ -313,10 +331,10 @@ export default function CartDrawer({
                                 </button>
                               </div>
                               <h4 className="text-xs font-black text-black tracking-tight mt-1 uppercase">
-                                {item.product.brand} {item.product.name}
+                                {item.product.brand} {tProduct(item.product).name}
                               </h4>
                               <p className="text-[10px] font-mono text-[#555] font-bold">
-                                РАЗМЕР: <span className="font-extrabold text-black underline">{item.selectedSize}</span>
+                                {language === 'EN' ? 'SIZE: ' : 'РАЗМЕР: '}<span className="font-extrabold text-black underline">{item.selectedSize}</span>
                               </p>
                             </div>
 
@@ -353,16 +371,24 @@ export default function CartDrawer({
                     <div className="bg-[#eefaff] border-2 border-black p-4 flex items-start gap-2.5 rounded-none shadow-[2.5px_2.5px_0px_rgba(0,0,0,1)] text-left">
                       <Plane size={15} className="text-black stroke-[2.5] mt-0.5 shrink-0" />
                       <div className="text-xs font-sans text-black font-semibold">
-                        <p className="font-black uppercase tracking-tight">Консолидированный рейс карго</p>
+                        <p className="font-black uppercase tracking-tight">
+                          {language === 'EN' ? 'CONSOLIDATED CARGO FREIGHT' : 'Консолидированный рейс карго'}
+                        </p>
                         <p className="text-[11px] text-neutral-600 mt-1.5">
-                          Посылки будут упакованы в единый фрахт. Вес отправления: <strong className="font-black text-black">{calculateTotalWeight()} кг</strong>. Страны выкупа: {getSourcingCountries()}.
+                          {language === 'EN' ? (
+                            <>Cargo packets will be compiled into a single фрахт. Disp. weight: <strong className="font-black text-black">{calculateTotalWeight()} kg</strong>. Sourced countries: {getSourcingCountries()}.</>
+                          ) : (
+                            <>Посылки будут упакованы в единый фрахт. Вес отправления: <strong className="font-black text-black">{calculateTotalWeight()} кг</strong>. Страны выкупа: {getSourcingCountries()}.</>
+                          )}
                         </p>
                       </div>
                     </div>
 
                     {/* Promo Code Input */}
                     <div className="border-2 border-black p-4 bg-white space-y-2 rounded-none shadow-[2.5px_2.5px_0px_rgba(0,0,0,1)] text-left">
-                      <label className="text-[9px] font-mono text-black uppercase tracking-widest font-black block">Промокод</label>
+                      <label className="text-[9px] font-mono text-black uppercase tracking-widest font-black block">
+                        {language === 'EN' ? 'PROMO CODE' : 'Промокод'}
+                      </label>
                       <div className="flex gap-2">
                         <input
                           id="input-promo-code"
@@ -378,7 +404,7 @@ export default function CartDrawer({
                           onClick={handleApplyPromo}
                           className="bg-[#1a1a1a] text-[#ffdd00] text-xs px-4 py-2 font-mono uppercase font-black hover:bg-neutral-800 border-2 border-black transition-all shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:translate-y-[1px] active:scale-95 cursor-pointer"
                         >
-                          Ввод
+                          {language === 'EN' ? 'ENTER' : 'Ввод'}
                         </button>
                       </div>
                       {promoDiscount > 0 && (
@@ -390,13 +416,15 @@ export default function CartDrawer({
 
                     {/* Checkout Billing Form */}
                     <form onSubmit={handleCheckoutSubmit} className="space-y-4 pt-4 border-t-2 border-black text-left">
-                      <p className="text-[9px] font-mono text-black font-black uppercase tracking-widest bg-[#f4f4f4] border border-black px-2.5 py-0.5 w-max">Декларация получателя</p>
+                      <p className="text-[9px] font-mono text-black font-black uppercase tracking-widest bg-[#f4f4f4] border border-black px-2.5 py-0.5 w-max">
+                        {language === 'EN' ? 'RECIPIENT DECLARATION' : 'Декларация получателя'}
+                      </p>
                       
                       <div className="space-y-3.5">
                         <div>
                           <label className="block text-[10px] font-mono uppercase text-black tracking-wider mb-1 font-black flex items-center gap-1">
                             <Globe size={11} className="text-black stroke-[2.5]" />
-                            <span>Страна вашего нахождения (Консолидация) *</span>
+                            <span>{language === 'EN' ? 'Your Location Country (Consolidation Point) *' : 'Страна вашего нахождения (Консолидация) *'}</span>
                           </label>
                           <select
                             id="billing-country-select"
@@ -406,22 +434,28 @@ export default function CartDrawer({
                           >
                             {Object.keys(COUNTRY_CITIES).map((cName) => (
                               <option key={cName} value={cName}>
-                                {COUNTRY_FLAGS[cName]} {cName}
+                                {COUNTRY_FLAGS[cName]} {tCountry(cName)}
                               </option>
                             ))}
                           </select>
                           <p className="text-[9px] font-mono text-neutral-500 mt-1 leading-snug font-bold">
-                            ⚠️ Покупки будут совершены в разных бутиках ({getSourcingCountries()}), но консолидированы в хабе **{locationCountry}** {COUNTRY_FLAGS[locationCountry]}. Финальное отправление поедет на ваш адрес из хаба в **{locationCountry}**.
+                            {language === 'EN' ? (
+                              `⚠️ Curated lots will be sourced across multiple bureaus (${getSourcingCountries()}), but bundled in the ${tCountry(locationCountry)} HUB ${COUNTRY_FLAGS[locationCountry]}. Final dispatch leaves from the ${tCountry(locationCountry)} terminal.`
+                            ) : (
+                              `⚠️ Покупки будут совершены в разных бутиках (${getSourcingCountries()}), но консолидированы в хабе **${locationCountry}** ${COUNTRY_FLAGS[locationCountry]}. Финальное отправление поедет на ваш адрес из хаба в **${locationCountry}**.`
+                            )}
                           </p>
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-mono uppercase text-black tracking-wider mb-1 font-black">ФИО Декларанта *</label>
+                          <label className="block text-[10px] font-mono uppercase text-black tracking-wider mb-1 font-black">
+                            {language === 'EN' ? 'Recipient Full Name *' : 'ФИО Декларанта *'}
+                          </label>
                           <input
                             id="billing-name"
                             type="text"
                             required
-                            placeholder="Иванов Александр Сергеевич"
+                            placeholder={language === 'EN' ? 'John Doe' : 'Иванов Александр Сергеевич'}
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
                             className="w-full bg-white border-2 border-black px-3.5 py-2.5 text-xs focus:outline-none focus:bg-[#eefaff] font-mono font-bold text-black rounded-none shadow-sm placeholder-neutral-400"
@@ -430,12 +464,14 @@ export default function CartDrawer({
 
                         <div className="grid grid-cols-2 gap-2.5">
                           <div>
-                            <label className="block text-[10px] font-mono uppercase text-black tracking-wider mb-1 font-black">Телефон *</label>
+                            <label className="block text-[10px] font-mono uppercase text-black tracking-wider mb-1 font-black">
+                              {language === 'EN' ? 'Phone Number *' : 'Телефон *'}
+                            </label>
                             <input
                               id="billing-phone"
                               type="tel"
                               required
-                              placeholder="+7 (999) 123-4567"
+                              placeholder={language === 'EN' ? '+1 (555) 019-2834' : '+7 (999) 123-4567'}
                               value={phone}
                               onChange={(e) => setPhone(e.target.value)}
                               className="w-full bg-white border-2 border-black px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none focus:bg-[#eefaff] text-black rounded-none shadow-sm placeholder-neutral-400"
@@ -446,7 +482,7 @@ export default function CartDrawer({
                             <input
                               id="billing-email"
                               type="email"
-                              placeholder="alex@passport.io"
+                              placeholder="client@passport.io"
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
                               className="w-full bg-white border-2 border-black px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none focus:bg-[#eefaff] text-black rounded-none shadow-sm placeholder-neutral-400"
@@ -455,7 +491,9 @@ export default function CartDrawer({
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-mono uppercase text-black tracking-wider mb-1 font-black">Пункт Доставки (Город)</label>
+                          <label className="block text-[10px] font-mono uppercase text-black tracking-wider mb-1 font-black">
+                            {language === 'EN' ? 'Delivery Destination (City) *' : 'Пункт Доставки (Город)'}
+                          </label>
                           <select
                             id="billing-city-select"
                             value={city}
@@ -464,19 +502,21 @@ export default function CartDrawer({
                           >
                             {(COUNTRY_CITIES[locationCountry] || []).map((cityOpt) => (
                               <option key={cityOpt} value={cityOpt}>
-                                {cityOpt}
+                                {useLanguage().tCity(cityOpt)}
                               </option>
                             ))}
                           </select>
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-mono uppercase text-black tracking-wider mb-1 font-black">Адрес доставки (СДЭК или Курьер) *</label>
+                          <label className="block text-[10px] font-mono uppercase text-black tracking-wider mb-1 font-black">
+                            {language === 'EN' ? 'Detailed Sourcing Address *' : 'Адрес доставки (СДЭК или Курьер) *'}
+                          </label>
                           <input
                             id="billing-address"
                             type="text"
                             required
-                            placeholder="ул. Ленина, д. 24, кв. 104"
+                            placeholder={language === 'EN' ? '742 Evergreen Terrace' : 'ул. Ленина, д. 24, кв. 104'}
                             value={address}
                             onChange={(e) => setAddress(e.target.value)}
                             className="w-full bg-white border-2 border-black px-3.5 py-2.5 text-xs focus:outline-none focus:bg-[#eefaff] font-mono font-bold text-black rounded-none shadow-sm placeholder-neutral-400"
@@ -487,21 +527,21 @@ export default function CartDrawer({
                       {/* Display calculations list */}
                       <div className="border-2 border-black bg-neutral-50 p-4 space-y-2 text-xs font-mono shadow-[2px_2px_0px_rgba(0,0,0,1)]">
                         <div className="flex justify-between text-[#555] font-semibold">
-                          <span>Стоимость вещей:</span>
+                          <span>{language === 'EN' ? 'Items Total value:' : 'Стоимость вещей:'}</span>
                           <span className="text-black font-extrabold">{subtotal.toLocaleString('ru-RU')} ₽</span>
                         </div>
                         {promoDiscount > 0 && (
                           <div className="flex justify-between text-emerald-600 font-black">
-                            <span>Скидка промо 10%:</span>
+                            <span>{language === 'EN' ? 'Promo Discount 10%:' : 'Скидка промо 10%:'}</span>
                             <span>-{discountAmount.toLocaleString('ru-RU')} ₽</span>
                           </div>
                         )}
                         <div className="flex justify-between text-[#555] font-semibold border-b border-dashed border-black/10 pb-2">
-                          <span>Авиа-доставка и пошлины:</span>
+                          <span>{language === 'EN' ? 'Air Freight & Duties:' : 'Авиа-доставка и пошлины:'}</span>
                           <span className="text-black font-extrabold">{shippingFee.toLocaleString('ru-RU')} ₽</span>
                         </div>
                         <div className="flex justify-between text-sm text-black font-black pt-1">
-                          <span>ИТОГО К ОПЛАТЕ:</span>
+                          <span>{language === 'EN' ? 'TOTAL VALUE:' : 'ИТОГО К ОПЛАТЕ:'}</span>
                           <span className="text-black bg-[#ffdd00] px-1">{totalAmount.toLocaleString('ru-RU')} ₽</span>
                         </div>
                       </div>
@@ -516,12 +556,12 @@ export default function CartDrawer({
                         {isCheckingOut ? (
                           <>
                             <RefreshCw size={14} className="animate-spin" />
-                            <span>РЕГИСТРАЦИЯ ФРАХТА И ТАМОЖНИ...</span>
+                            <span>{language === 'EN' ? 'PROCESSING CONSOLIDATED FREIGHT & DECLARATION...' : 'РЕГИСТРАЦИЯ ФРАХТА И ТАМОЖНИ...'}</span>
                           </>
                         ) : (
                           <>
                             <FileText size={14} className="stroke-[2.5]" />
-                            <span>ЗАРЕГИСТРИРОВАТЬ ДЕКЛАРАЦИЮ</span>
+                            <span>{language === 'EN' ? 'REGISTER CARGO DECLARATION' : 'ЗАРЕГИСТРИРОВАТЬ ДЕКЛАРАЦИЮ'}</span>
                           </>
                         )}
                       </button>

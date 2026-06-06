@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { ShoppingBag, Eye, ArrowUpRight } from 'lucide-react';
 import { Product } from '../types';
+import { useLanguage } from './LanguageContext';
 
 interface ProductCardProps {
   key?: string | number;
@@ -11,8 +12,11 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, onOpenDetails, onAddToCart }: ProductCardProps) {
+  const { language, tCountry, t, tProduct } = useLanguage();
   const [isHovered, setIsHovered] = useState(false);
   const [selectedSizeQuick, setSelectedSizeQuick] = useState<string | null>(null);
+
+  const localized = tProduct(product);
 
   const formatPrice = (price: number) => {
     return price.toLocaleString('ru-RU') + ' ₽';
@@ -35,7 +39,7 @@ export default function ProductCard({ product, onOpenDetails, onAddToCart }: Pro
       {/* Country of Sourcing Badge */}
       <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-[#1a1a1a] text-white text-[10px] md:text-xs font-mono font-bold px-2.5 py-1 tracking-widest uppercase border border-white">
         <span>{product.countryFlag}</span>
-        <span>{product.countryName}</span>
+        <span>{tCountry(product.countryName)}</span>
       </div>
 
       {/* Stock Warning Badge */}
@@ -81,7 +85,7 @@ export default function ProductCard({ product, onOpenDetails, onAddToCart }: Pro
         {/* Quick actions overlay */}
         <div className="absolute bottom-3 left-3 right-3 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-200 ease-out z-10 hidden sm:block">
           <div className="flex flex-col gap-1.5 bg-white p-2 border-2 border-[#1a1a1a] shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]">
-            <span className="text-[9px] font-mono text-[#888] uppercase tracking-widest font-black text-center">Быстрый выкуп</span>
+            <span className="text-[9px] font-mono text-[#888] uppercase tracking-widest font-black text-center">{language === 'EN' ? 'QUICK BUY' : 'Быстрый выкуп'}</span>
             <div className="grid grid-cols-4 gap-1">
               {product.sizes.map((size) => (
                 <button
@@ -116,7 +120,7 @@ export default function ProductCard({ product, onOpenDetails, onAddToCart }: Pro
               {product.brand}
             </p>
             <span className="text-[9px] font-mono bg-[#f4f4f4] border border-[#1a1a1a] px-2 py-0.5 text-[#1a1a1a] font-bold uppercase rounded-none">
-              {product.category}
+              {t('cat.' + product.category)}
             </span>
           </div>
 
@@ -126,7 +130,7 @@ export default function ProductCard({ product, onOpenDetails, onAddToCart }: Pro
             className="text-xs sm:text-sm font-sans font-black text-[#1a1a1a] uppercase tracking-tight mt-2 line-clamp-2 hover:underline underline-offset-2 cursor-pointer transition-colors"
             onClick={() => onOpenDetails(product)}
           >
-            {product.name}
+            {localized.name}
           </h3>
         </div>
 
@@ -149,7 +153,7 @@ export default function ProductCard({ product, onOpenDetails, onAddToCart }: Pro
             onClick={() => onOpenDetails(product)}
             className="flex items-center gap-1 text-[10px] bg-[#1a1a1a] hover:bg-[#ffdd00] text-white hover:text-black border border-[#1a1a1a] font-mono uppercase tracking-widest transition-colors font-bold px-3 py-1.5 rounded-none shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:shadow-none group/btn cursor-pointer"
           >
-            <span>ИНФО</span>
+            <span>{language === 'EN' ? 'INFO' : 'ИНФО'}</span>
             <ArrowUpRight size={11} className="transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
           </button>
         </div>
